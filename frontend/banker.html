@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banker Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="banker.css">
+</head>
+
+<body>
+    <form class="form-container" id="bankerForm">
+        <nav>
+            <div class="nav-container">
+                <a href="#" class="logo">FraudEx</a>
+            </div>
+        </nav>
+
+        <div class="form-content">
+            <h2>Banker Dashboard</h2>
+            <div class="button-container">
+                <button type="button" class="huge-button" id="new-button">New</button>
+                <button type="button" class="huge-button" id="existing-button">Existing</button>
+                <a href="index.html">Back to Home?</a>
+            </div>
+        </div>
+
+        <footer>
+            <div class="footer-bottom">
+                <p>&copy; 2024 FraudEx. All rights reserved.</p>
+            </div>
+        </footer>
+    </form>
+
+    <!-- Include jQuery for AJAX functionality -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('#new-button').click(function () {
+                sendAction('new');
+            });
+
+            $('#existing-button').click(function () {
+                sendAction('existing');
+            });
+
+            function sendAction(action) {
+                // Prepare data to send to API
+                var requestData = {
+                    action: action
+                    // Add more fields if needed
+                };
+
+                // Make AJAX POST request to your Flask API
+                $.ajax({
+                    type: 'POST',
+                    url: 'http://127.0.0.1:5000/process_payment', // Replace with your API endpoint
+                    contentType: 'application/json',
+                    data: JSON.stringify(requestData),
+                    success: function (response) {
+                        // Handle success response from API
+                        console.log(response);
+                        alert('Action processed successfully!');
+                        // Optionally, redirect to a success page or update UI
+                    },
+                    error: function (xhr, status, error) {
+                        // Handle error response from API
+                        console.error(error);
+                        alert('Error processing action. Please try again later.');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>

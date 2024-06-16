@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Gateway</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="user.css">
+</head>
+
+<body>
+    <nav>
+        <div class="nav-container">
+            <a href="#" class="logo">FraudEx</a>
+        </div>
+    </nav>
+
+    <div class="content">
+        <!-- Payment Form -->
+        <form class="payment-form" id="paymentForm">
+            <div class="form-container">
+                <label for="amount" class="form-label">Amount</label>
+                <input type="text" id="amount" name="amount" class="form-input">
+                <div class="payment-buttons">
+                    <button type="button" class="huge-button" id="card-button">Pay with Card</button>
+                    <button type="button" class="huge-button" id="bank-button">Pay with Bank</button>
+                    <a href="index.html">Back to Home</a>
+                </div>
+            </div>
+        </form>
+
+        <!-- Transaction Processing -->
+        <div class="transaction-processing">
+            <h1>Process Transaction</h1>
+            <video id="video" width="640" height="480" autoplay></video>
+            <button id="capture">Capture and Process Transaction</button>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-bottom">
+            <p>&copy; 2024 FraudEx. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Include jQuery for AJAX functionality -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            // Function to handle form submission
+            $('#card-button').click(function () {
+                submitPayment('card');
+            });
+
+            $('#bank-button').click(function () {
+                submitPayment('bank');
+            });
+
+            function submitPayment(paymentType) {
+                // Get amount input value
+                var amount = $('#amount').val();
+
+                // Validate amount (you may want more robust validation)
+                if (amount === '' || isNaN(amount)) {
+                    alert('Please enter a valid amount.');
+                    return;
+                }
+
+                // Prepare data to send to API
+                var requestData = {
+                    amount: amount,
+                    payment_type: paymentType
+                    // Add more fields if needed
+                };
+
+                // Make AJAX POST request to your Flask API for payment processing
+                $.ajax({
+                    type: 'POST',
+                    url: 'http://127.0.0.1:5000/process_payment', // Replace with your API endpoint
+                    contentType: 'application/json',
+                    data: JSON.stringify(requestData),
+                    success: function (response) {
+                        // Handle success response from API
+                        console.log(response);
+                        alert('Payment processed successfully!');
+                        // Optionally, redirect to a success page or update UI
+                    },
+                    error: function (xhr, status, error) {
+                        // Handle error response from API
+                        console.error(error);
+                        alert('Error processing payment. Please try again later.');
+                    }
+                });
+            }
+
+            // Transaction processing section
+            const video = document.getElementById('video');
+            const button = document.getElementById('capture');
+
+            // Access the device camera and stream to video element
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => {
+                    video.srcObject = stream;
+                })
+                .catch(err => {
+                    console.error("Error accessing the camera: " + err);
+                });
+
+            button.addEventListener('click', () => {
+                // Create a canvas to capture the image from the video
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const context = canvas.getContext('2d');
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const image = canvas.toDataURL('image/jpeg');
+
+                // Remove the data URL prefix to get only base64 string
+                const base64Image = image.split(',')[1];
+                const userId = prompt("Please enter your User ID:");
+
+                // Send captured image and user ID to server for transaction processing
+                fetch('http://127.0.0.1:5000/process_transaction', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        image: base64Image,
+                        user_id: userId
+                    })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        alert(data.message);
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            });
+        });
+    </script>
+</body>
+
+</html>
